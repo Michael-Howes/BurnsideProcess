@@ -1,4 +1,4 @@
-using Random, SparseArrays, ProgressMeter, Combinatorics, Permutations
+using Random, SparseArrays, Permutations
 include("cycles.jl")
 
 """
@@ -99,8 +99,8 @@ function lumped_burnside(n :: Integer, reps :: Integer)
     a = spzeros(Integer, n)
     a[1] = n
     partitions[1,1] = n
-    @showprogress for i in 2:reps
-        a = burnside_step(a)
+    for i in 2:reps
+        a = lumped_burnside_step(a)
         for k in a.nzind
             partitions[k, i] = a[k]
         end
@@ -129,7 +129,7 @@ function reflected_burnside(n :: Integer, reps :: Integer)
     a = spzeros(Integer, n)
     a[1] = n
     partitions[1,1] = n
-    @showprogress for i in 2:reps
+    for i in 2:reps
         a = reflected_burnside_step(a)
         for k in a.nzind
             partitions[k, i] = a[k]
@@ -161,7 +161,7 @@ function reflected_burnside_feature(fun :: Function, n :: Integer, reps :: Integ
     a = spzeros(Integer, n)
     a[1] = n
     features[1] = fun(a)
-    @showprogress for i in 2:reps
+    for i in 2:reps
         a = reflected_burnside_step(a)
         features[i] = fun(a)
     end 
@@ -191,7 +191,7 @@ function lumped_burnside_feature(n :: Integer, fun, reps :: Integer)
     a = spzeros(Integer, n)
     a[1] = n
     features[1] = fun(a)
-    @showprogress for i in 2:reps
+    for i in 2:reps
         a = lumped_burnside_step(a)
         features[i] = fun(a)
     end 
@@ -307,7 +307,7 @@ partition with `n` parts all equal to `1`).
 function reflected_burnside_sample(n :: Integer, steps :: Integer, reps :: Integer)
     partitions = spzeros(Integer, n, reps)
 
-    @showprogress for i in 1:reps
+    for i in 1:reps
         a = spzeros(Integer, n)
         a[1] = n 
         for _ in 1:steps
