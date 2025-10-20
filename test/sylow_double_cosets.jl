@@ -3,8 +3,6 @@ using Test, Random, Permutations
 include("../sylow_double_cosets.jl")
 
 @testset "sample_from_stabilizer tests" begin
-
-    # small examples that satisfy 1 <= k < p.
     p1, k1 = 3, 1
     # Identity permutation.
     sigma1 = Permutation(p1 * k1)
@@ -67,15 +65,30 @@ end
 
 @testset "sample_from_fixed_points test" begin
     p, k = 5, 2
+    # Test h and g each having one p-cycle.
     h1 = Permutation([2, 3, 4, 5, 1, 6, 7, 8, 9, 10])
     g1 = Permutation([1, 2, 3, 4, 5, 10, 6, 7, 8, 9])
     tau1 = sample_from_fixed_points(h1, g1, p, k)
     @test inv(h1) * tau1 * g1 == tau1
 
+    # Test h and g each having two p-cycles.
     h2 = Permutation([2, 3, 4, 5, 1, 10, 6, 7, 8, 9])
     g2 = Permutation([5, 1, 2, 3, 4, 7, 8, 9, 10, 6])
     tau2 = sample_from_fixed_points(h2, g2, p, k)
     @test inv(h2) * tau2 * g2 == tau2
     _, _, a = sample_from_stabilizer(tau2, p, k)
     @test a == k # tau must be in a small double coset.
+end
+
+@testset "sylow_burnside test" begin
+    p, k = 7, 6
+    reps = p^2
+
+    permutations, sizes = sylow_burnside(p, k, reps)
+
+    @test length(permutations) == reps
+    @test length(permutations[1]) == p * k
+    @test length(sizes) == reps
+    @test sizes[1] == k
+    @test all(k .<= sizes .<= 2 * k)
 end
