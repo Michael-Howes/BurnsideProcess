@@ -172,8 +172,7 @@ function log_num_double_cosets(a::Integer, p::Integer, k::Integer)
         return pos_term
     else
         neg_term = logsumexp(terms[2:2:(a-k+1)])
-        log_num = logexpm1(pos_term - neg_term) + neg_term
-        return log_num
+        return logsubexp(pos_term, neg_term)
     end
 end
 
