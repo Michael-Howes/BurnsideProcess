@@ -1,4 +1,4 @@
-using Permutations, Random
+using Permutations, Random, SpecialFunctions, LogExpFunctions
 
 """
     sample_from_stabilizer(sigma::Permutation, p::Integer, k::Integer)
@@ -139,18 +139,56 @@ function sylow_burnside(p::Integer, k::Integer, reps::Integer)
     @assert 1 <= k "k must satisfy 1 <= k."
     @assert k < p "k must satisfy k < p."
     sigma = Permutation(p * k)
-    permutations = [sigma]
-    sizes = [k]
+    sizes = []
+    permutations = []
     for _ in 1:(reps-1)
         h, g, a = sample_from_stabilizer(sigma, p, k)
-        @assert is_in_sylow_subgroup(h, p, k) "h must be in the p-Sylow subgroup."
-        @assert is_in_sylow_subgroup(g, p, k) "g must be in the p-Sylow subgroup."
-        @assert inv(h) * sigma * g == sigma
-        sigma = sample_from_fixed_points(h, g, p, k)
-        @assert inv(h) * sigma * g == sigma
         push!(permutations, sigma)
         push!(sizes, a)
+        sigma = sample_from_fixed_points(h, g, p, k)
     end
+    push!(permutations, sigma)
+    _, _, a = sample_from_stabilizer(sigma, p, k)
+    push!(sizes, a)
     return permutations, sizes
 end
 
+"""
+    log_num_double_cosets(a::Integer, p::Integer, k::Integer)
+
+Computes the logarithm of the number of Sylow p-double cosets of size `p^a` in S_{pk}.
+
+"""
+function log_num_double_cosets(a::Integer, p::Integer, k::Integer)
+    @assert 1 <= k "k must satisfy 1 <= k."
+    @assert k < p "k must satisfy k < p."
+    if !(k <= a <= 2 * k)
+        return -Inf
+    end
+    js = collect((2*k-a):k)
+    terms = @. logfactorial((k - js) * p) + logfactorial(js) + 2 * (logfactorial(k) - logfactorial(js) - logfactorial(k - js)) + js * (log(p) + log(p - 1)) + logfactorial(js) - logfactorial(2 * k - a) - logfactorial(js - (2 * k - a)) - a * log(p)
+    pos_term = logsumexp(terms[1:2:(a-k+1)])
+    if a == k
+        return pos_term
+    else
+        neg_term = logsumexp(terms[2:2:(a-k+1)])
+        log_num = logexpm1(pos_term - neg_term) + neg_term
+        return log_num
+    end
+end
+
+
+"""
+    stationary_distribution(p::Integer, k::Integer)
+
+Return the stationary distribution of the Sylow--Burnside process lumped to double coset size.
+"""
+function stationary_distribution(p::Integer, k::Integer)
+    @assert 1 <= k "k must satisfy 1 <= k."
+    @assert k < p "k must satisfy k < p."
+    log_pi = zeros(2 * k)
+    for a in k:2k
+        log_pi[a] = log_num_double_cosets(a, p, k)
+    end
+    return softmax(log_pi)
+end

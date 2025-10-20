@@ -92,3 +92,32 @@ end
     @test sizes[1] == k
     @test all(k .<= sizes .<= 2 * k)
 end
+
+@testset "log_num_double_cosets test" begin
+    p, k = 11, 1
+    n1 = 10 # Number of small double cosets.
+    n2 = 329890 # Number of large double cosets.
+
+    @test n1 ≈ exp(log_num_double_cosets(k, p, k))
+    @test n2 ≈ exp(log_num_double_cosets(k + 1, p, k))
+
+    p, k = 5, 2
+    n2 = 32
+    n3 = 64
+    n4 = 5792
+    @test n2 ≈ exp(log_num_double_cosets(k, p, k))
+    @test n3 ≈ exp(log_num_double_cosets(k + 1, p, k))
+    @test n4 ≈ exp(log_num_double_cosets(k + 2, p, k))
+
+    p, k, = 11, 4
+    log_approx = logfactorial(p * k) - (2 * k) * log(p)
+    @test log_approx ≈ log_num_double_cosets(2 * k, p, k)
+end
+
+@testset "stationary_distribution test" begin
+    p, k = 5, 4
+    pi = stationary_distribution(p, k)
+    @test length(pi) == 2 * k
+    @test all(pi[1:(k-1)] .< 1e-12)
+    @test sum(pi) ≈ 1
+end
