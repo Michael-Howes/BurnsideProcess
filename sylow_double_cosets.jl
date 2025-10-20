@@ -31,15 +31,33 @@ function sample_from_stabilizer(sigma::Permutation, p::Integer, k::Integer)
         eta[ending] = start
         eta = Permutation(eta)
         eta_conj = inv(sigma) * eta * sigma
-        if (is_in_sylow_subgroup(eta_conj, p, k))
+        is_in_H = is_in_sylow_subgroup(eta_conj, p, k)
+        if (is_in_H)
             i = rand(0:(p-1))
-            g = g * eta^i
+            g = g * eta_conj^i
             a -= 1
         end
     end
     return sigma * g * inv(sigma), g, a
 end
 
+"""
+    is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer) -> Bool
+
+Return `true` if `sigma` (of length `p*k`) lies in the Sylow p-subgroup used by this module.
+
+Preconditions:
+- `sigma` must have length `p*k`.
+- `k` must be between `1` and `p-1`.
+
+Checks performed:
+- every cycle of `sigma` has length either `1` or `p`.
+- each `p`-cycle is supported on a block whose first element is congruent to `1 (mod p)`
+  and whose entries follow a constant step (mod `p`) so that the cycle is of the
+  form {b, b+step, b+2*step, ..., b+(p-1)*step}.
+
+Returns `false` if any condition fails, otherwise `true`.
+"""
 function is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer)
     @assert length(sigma) == p * k "Permutation length must be pk."
     @assert 1 <= k "k must satisfy 1 <= k."
@@ -63,11 +81,27 @@ function is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer)
     return true
 end
 
+"""
+    sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k::Integer) -> Permutation
+
+Construct a random permutation `tau` that maps the fixed points of `g` to the fixed points of `h`
+and maps each `p`-cycle of `g` bijectively to a `p`-cycle of `h` up to a random cyclic rotation.
+
+Preconditions:
+- `1 <= k < p`.
+- `h` and `g` must be elements of the Sylow `p`-subgroup.
+
+Behavior:
+- Fixed points of `g` are assigned to fixed points of `h` by a uniform shuffle.
+- The `p`-cycles of `g` are paired with a uniformly shuffled list of the `p`-cycles of `h`;
+  for each pair a random cyclic shift is applied when mapping entries of the `g`-cycle
+  to the `h`-cycle.
+
+Returns the resulting permutation `tau`.
+"""
 function sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k::Integer)
     @assert 1 <= k "k must satisfy 1 <= k."
     @assert k < p "k must satisfy k < p."
-    @assert is_in_sylow_subgroup(h, p, k) "h must be in the p-Sylow subgroup."
-    @assert is_in_sylow_subgroup(g, p, k) "g must be in the p-Sylow subgroup."
 
     tau = collect(1:(p*k))
     tau[fixed_points(g)] = shuffle(fixed_points(h))
@@ -84,3 +118,39 @@ function sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k:
     end
     return Permutation(tau)
 end
+
+
+"""
+    sylow_burnside(p :: Integer, k :: Integer, reps :: Integer)
+
+Runs the Sylow--Burnside process for the symetric group of size `p*k` started at the identity permutation.
+
+# Arguments
+- `p::Integer`: Prime number.
+- `k::Integer`: Integer satisfying `1 <= p <k`.
+- `reps::Integer`: The number of steps of the Sylow--Burnside process.
+
+# Returns
+- `permutations::Array{Permutation}`: Samples from the Burnside process. 
+    Contain `reps` permutations each of length `p*k`.
+- `sizes::Array{Integers}`: The size of the double cosets containing each sampled permutation.
+"""
+function sylow_burnside(p::Integer, k::Integer, reps::Integer)
+    @assert 1 <= k "k must satisfy 1 <= k."
+    @assert k < p "k must satisfy k < p."
+    sigma = Permutation(p * k)
+    permutations = [sigma]
+    sizes = [k]
+    for _ in 1:(reps-1)
+        h, g, a = sample_from_stabilizer(sigma, p, k)
+        @assert is_in_sylow_subgroup(h, p, k) "h must be in the p-Sylow subgroup."
+        @assert is_in_sylow_subgroup(g, p, k) "g must be in the p-Sylow subgroup."
+        @assert inv(h) * sigma * g == sigma
+        sigma = sample_from_fixed_points(h, g, p, k)
+        @assert inv(h) * sigma * g == sigma
+        push!(permutations, sigma)
+        push!(sizes, a)
+    end
+    return permutations, sizes
+end
+
