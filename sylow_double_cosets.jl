@@ -30,11 +30,10 @@ function sample_from_stabilizer(sigma::Permutation, p::Integer, k::Integer)
         eta[start:ending-1] = collect(start+1:ending)
         eta[ending] = start
         eta = Permutation(eta)
-        eta_conj = inv(sigma) * eta * sigma
-        is_in_H = is_in_sylow_subgroup(eta_conj, p, k)
-        if (is_in_H)
+        eta_conj = sigma * eta * inv(sigma)
+        if (is_in_sylow_subgroup(eta_conj, p, k))
             i = rand(0:(p-1))
-            g = g * eta_conj^i
+            g = g * eta^i
             a -= 1
         end
     end
