@@ -43,19 +43,14 @@ end
 """
     is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer) -> Bool
 
-Return `true` if `sigma` (of length `p*k`) lies in the Sylow p-subgroup used by this module.
+Return `true` if `sigma` (of length `p*k`) lies in the Sylow `p`-subgroup generate by the cycles 
+    (1,...,p), (p+1,...,2p) and so on.
 
-Preconditions:
-- `sigma` must have length `p*k`.
-- `k` must be between `1` and `p-1`.
+To determine if `sigma` is in the subgroup, the following checks are performed
+- Every cycle of `sigma` has length either `1` or `p`.
+- Each `p`-cycle is of the form (jp+1,...,(j+1)p)^i for some `j` and `i`.
 
-Checks performed:
-- every cycle of `sigma` has length either `1` or `p`.
-- each `p`-cycle is supported on a block whose first element is congruent to `1 (mod p)`
-  and whose entries follow a constant step (mod `p`) so that the cycle is of the
-  form {b, b+step, b+2*step, ..., b+(p-1)*step}.
-
-Returns `false` if any condition fails, otherwise `true`.
+Returns `false` if either of the above conditions fails, otherwise `true`.
 """
 function is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer)
     @assert length(sigma) == p * k "Permutation length must be pk."
@@ -83,27 +78,25 @@ end
 """
     sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k::Integer) -> Permutation
 
-Construct a random permutation `tau` that maps the fixed points of `g` to the fixed points of `h`
-and maps each `p`-cycle of `g` bijectively to a `p`-cycle of `h` up to a random cyclic rotation.
+Uniformly sample a permutation `tau` satisfying `inv(h) * tau * g = tau`. 
 
-Preconditions:
-- `1 <= k < p`.
-- `h` and `g` must be elements of the Sylow `p`-subgroup.
+The method checks that `h` and `g` are both in the Sylow p-subgroup and that `h` and `g` have the same cycle type.
 
-Behavior:
-- Fixed points of `g` are assigned to fixed points of `h` by a uniform shuffle.
-- The `p`-cycles of `g` are paired with a uniformly shuffled list of the `p`-cycles of `h`;
-  for each pair a random cyclic shift is applied when mapping entries of the `g`-cycle
-  to the `h`-cycle.
-
-Returns the resulting permutation `tau`.
+The permutation `tau` is defined separely as a map from the fixed points of `g` to the fixed points of `h` and as a map from the `p` cycles of `g` to the `p`-cycles of `h`.
+- On the fixed points, `g` is a uniformly sampled bijection.
+- On the `p`-cycles `tau` cyclically shifts each `p`-cyle of `g` and then maps each cycle to a `p`-cycle of `h`.
 """
 function sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k::Integer)
     @assert 1 <= k "k must satisfy 1 <= k."
     @assert k < p "k must satisfy k < p."
+    @assert is_in_sylow_subgroup(h, p, k) "h must be in the Sylow p-subgroup"
+    @assert is_in_sylow_subgroup(g, p, k) "g must be in the Sylow p-subgroup"
+    g_fixed_points = fixed_points(g)
+    h_fixed_points = fixed_points(h)
+    @assert length(g_fixed_points) == length(h_fixed_points) "h and g must have the same cycle type."
 
     tau = collect(1:(p*k))
-    tau[fixed_points(g)] = shuffle(fixed_points(h))
+    tau[g_fixed_points] = shuffle(h_fixed_points)
 
     p_cycles_g = filter((c) -> length(c) == p, cycles(g))
     p_cycles_h = shuffle(filter((c) -> length(c) == p, cycles(h)))
@@ -126,7 +119,7 @@ Runs the Sylow--Burnside process for the symetric group of size `p*k` started at
 
 # Arguments
 - `p::Integer`: Prime number.
-- `k::Integer`: Integer satisfying `1 <= p <k`.
+- `k::Integer`: Integer satisfying `1 <= p < k`.
 - `reps::Integer`: The number of steps of the Sylow--Burnside process.
 
 # Returns
@@ -156,6 +149,8 @@ end
     log_num_double_cosets(a::Integer, p::Integer, k::Integer)
 
 Computes the logarithm of the number of Sylow p-double cosets of size `p^a` in S_{pk}.
+
+Based on the formula in 
 
 """
 function log_num_double_cosets(a::Integer, p::Integer, k::Integer)
