@@ -21,58 +21,48 @@ function sample_from_stabilizer(sigma::Permutation, p::Integer, k::Integer)
     @assert length(sigma) == p * k "Permutation length must be pk."
     @assert 1 <= k "k must satisfy 1 <= k."
     @assert k < p "k must satisfy k < p."
-    g = Permutation(p * k)
+    g = collect(1:(p*k))
     a = 2 * k
+    inv_sigma = inv(sigma)
     for j in 1:k
-        eta = collect(1:(p*k))
         start = (j - 1) * p + 1
-        ending = p * j
-        eta[start:ending-1] = collect(start+1:ending)
-        eta[ending] = start
-        eta = Permutation(eta)
-        eta_conj = sigma * eta * inv(sigma)
-        if (is_in_sylow_subgroup(eta_conj, p, k))
+        ending = j * p
+        conj_cycle = sigma.data[start:ending]
+
+        if (is_cycle_in_sylow_subgroup(conj_cycle, p))
             i = rand(0:(p-1))
-            g = g * eta^i
+            g[start:ending] = start .+ (collect(i:(i+p-1)) .% p)
             a -= 1
         end
     end
-    return sigma * g * inv(sigma), g, a
+    g = Permutation(g)
+    return sigma * g * inv_sigma, g, a
 end
 
 """
-    is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer) -> Bool
+    is_cycle_in_sylow_subgroup(cycle::Array, p::Integer) -> Bool
 
-Return `true` if `sigma` (of length `p*k`) lies in the Sylow `p`-subgroup generate by the cycles 
-    (1,...,p), (p+1,...,2p) and so on.
+Return `true` if `cycle` is a cycle in the Sylow subgroup.
 
-To determine if `sigma` is in the subgroup, the following checks are performed
-- Every cycle of `sigma` has length either `1` or `p`.
-- Each `p`-cycle is of the form (jp+1,...,(j+1)p)^i for some `j` and `i`.
+The cycles in the subgroup are (up to a cyclic shift) all of the form
 
-Returns `false` if either of the above conditions fails, otherwise `true`.
+    `[start, start + step, start + (2*step % p), ..., start + ((p-1)*step % p)]``
+
+and `start % p == 1`.
 """
-function is_in_sylow_subgroup(sigma::Permutation, p::Integer, k::Integer)
-    @assert length(sigma) == p * k "Permutation length must be pk."
-    @assert 1 <= k "k must satisfy 1 <= k."
-    @assert k < p "k must satisfy k < p."
-    for c in cycles(sigma)
-        if length(c) != 1 && length(c) != p
-            return false
-        end
-        if length(c) == p
-            start = c[1]
-            if start % p != 1
-                return false
-            end
-            step = c[2] - c[1]
-            expected = (collect(0:step:((p-1)*step)) .% p) .+ start
-            if expected != c
-                return false
-            end
-        end
+function is_cycle_in_sylow_subgroup(cycle::Array, p::Integer)
+    if length(cycle) != p
+        return false
     end
-    return true
+    min_location = argmin(cycle)
+    cycle = [cycle[min_location:p]; cycle[1:(min_location-1)]]
+    if cycle[1] % p != 1
+        return false
+    end
+    start = cycle[1]
+    step = cycle[2] - start
+    expected = (collect(0:step:(p-1)*step) .% p) .+ start
+    return expected == cycle
 end
 
 """
@@ -89,8 +79,6 @@ The permutation `tau` is defined separely as a map from the fixed points of `g` 
 function sample_from_fixed_points(h::Permutation, g::Permutation, p::Integer, k::Integer)
     @assert 1 <= k "k must satisfy 1 <= k."
     @assert k < p "k must satisfy k < p."
-    @assert is_in_sylow_subgroup(h, p, k) "h must be in the Sylow p-subgroup"
-    @assert is_in_sylow_subgroup(g, p, k) "g must be in the Sylow p-subgroup"
     g_fixed_points = fixed_points(g)
     h_fixed_points = fixed_points(h)
     @assert length(g_fixed_points) == length(h_fixed_points) "h and g must have the same cycle type."
@@ -185,3 +173,7 @@ function stationary_distribution(p::Integer, k::Integer)
     end
     return softmax(log_pi)
 end
+
+p = 5
+k = 1
+sylow_burnside(p, k, 10)

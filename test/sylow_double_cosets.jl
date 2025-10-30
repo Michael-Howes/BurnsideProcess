@@ -44,23 +44,48 @@ include("../sylow_double_cosets.jl")
     @test a4 == 2 * k4 - 1
 end
 
-@testset "is_in_sylow_subgroup tests" begin
-    p, k = 5, 2
+# @testset "is_in_sylow_subgroup tests" begin
+#     p, k = 5, 2
 
-    eta1 = Permutation([2, 3, 4, 5, 1, 6, 7, 8, 9, 10])
-    eta2 = Permutation([1, 2, 3, 4, 5, 7, 8, 9, 10, 6])
+#     eta1 = Permutation([2, 3, 4, 5, 1, 6, 7, 8, 9, 10])
+#     eta2 = Permutation([1, 2, 3, 4, 5, 7, 8, 9, 10, 6])
 
 
-    # check all combinations of powers i,j in 0:4.
-    for i in 0:4, j in 0:4
-        @test is_in_sylow_subgroup(eta1^i * eta2^j, p, k)
+#     # check all combinations of powers i,j in 0:4.
+#     for i in 0:4, j in 0:4
+#         @test is_in_sylow_subgroup(eta1^i * eta2^j, p, k)
+#     end
+
+#     sigma1 = Permutation([2, 3, 1, 4, 5, 7, 6, 8, 9, 10])
+#     @test !is_in_sylow_subgroup(sigma1, p, k)
+
+#     sigma2 = Permutation([2, 3, 4, 1, 5, 6, 7, 8, 9, 10])
+#     @test !is_in_sylow_subgroup(sigma2, p, k)
+# end
+
+@testset "is_cycle_in_sylow_subgroup tests" begin
+    p = 5
+    cycle = collect(1:p)
+    @test is_cycle_in_sylow_subgroup(cycle, p)
+
+    cycle2 = collect(0:2:(2*(p-1))) .% p .+ 1
+    @test is_cycle_in_sylow_subgroup(cycle2, p)
+
+    cycle_wrong_length = collect(1:(p-1))
+    @test !is_cycle_in_sylow_subgroup(cycle_wrong_length, p)
+
+    cycle_wrong_start = collect(2:(p+1))
+    @test !is_cycle_in_sylow_subgroup(cycle_wrong_start, p)
+
+    cycle_wrong_order = [1, 2, 3, 5, 4]
+    @test !is_cycle_in_sylow_subgroup(cycle_wrong_order, 5)
+
+
+    for start in 1:p, step in 1:(p-1)
+        cycle1 = (collect(start:step:(p-1)*step+start) .% p) .+ 1
+        @test is_cycle_in_sylow_subgroup(cycle1, p)
     end
 
-    sigma1 = Permutation([2, 3, 1, 4, 5, 7, 6, 8, 9, 10])
-    @test !is_in_sylow_subgroup(sigma1, p, k)
-
-    sigma2 = Permutation([2, 3, 4, 1, 5, 6, 7, 8, 9, 10])
-    @test !is_in_sylow_subgroup(sigma2, p, k)
 end
 
 @testset "sample_from_fixed_points test" begin
