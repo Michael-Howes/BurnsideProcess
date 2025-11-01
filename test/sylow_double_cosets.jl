@@ -8,8 +8,9 @@ include("../sylow_double_cosets.jl")
     sigma1 = Permutation(p1 * k1)
     h1, g1, a1 = sample_from_stabilizer(sigma1, p1, k1)
 
-    @test is_in_sylow_subgroup(h1, p1, k1)
-    @test is_in_sylow_subgroup(g1, p1, k1)
+    for c in [cycles(h1); cycles(g1)]
+        @test is_cycle_in_sylow_subgroup(c, p1)
+    end
     @test inv(h1) * sigma1 * g1 == sigma1
     @test a1 == k1
 
@@ -18,8 +19,9 @@ include("../sylow_double_cosets.jl")
     sigma2 = Permutation(p2 * k2)
     h2, g2, a2 = sample_from_stabilizer(sigma2, p2, k2)
 
-    @test is_in_sylow_subgroup(h2, p2, k2)
-    @test is_in_sylow_subgroup(g2, p2, k2)
+    for c in [cycles(h2); cycles(g2)]
+        @test is_cycle_in_sylow_subgroup(c, p2)
+    end
     @test inv(h2) * sigma2 * g2 == sigma2
     @test a2 == k2
 
@@ -27,8 +29,9 @@ include("../sylow_double_cosets.jl")
     # Permutation in a large double coset.
     sigma3 = Permutation([1, 10, 2, 9, 3, 8, 4, 7, 5, 6])
     h3, g3, a3 = sample_from_stabilizer(sigma3, p2, k2)
-    @test is_in_sylow_subgroup(h3, p3, k3)
-    @test is_in_sylow_subgroup(g3, p3, k3)
+    for c in [cycles(h3); cycles(g3)]
+        @test is_cycle_in_sylow_subgroup(c, p3)
+    end
     @test inv(h3) * sigma3 * g3 == sigma3
     @test a3 == 2 * k3
     @test h3 == Permutation(p3 * k3)
@@ -38,30 +41,12 @@ include("../sylow_double_cosets.jl")
     # Permutation in a medium sized double coset.
     sigma4 = Permutation([10, 6, 9, 7, 8, 1, 2, 3, 4, 5])
     h4, g4, a4 = sample_from_stabilizer(sigma4, p4, k4)
-    @test is_in_sylow_subgroup(h4, p4, k4)
-    @test is_in_sylow_subgroup(g4, p4, k4)
+    for c in [cycles(h4); cycles(g4)]
+        @test is_cycle_in_sylow_subgroup(c, p4)
+    end
     @test inv(h4) * sigma4 * g4 == sigma4
     @test a4 == 2 * k4 - 1
 end
-
-# @testset "is_in_sylow_subgroup tests" begin
-#     p, k = 5, 2
-
-#     eta1 = Permutation([2, 3, 4, 5, 1, 6, 7, 8, 9, 10])
-#     eta2 = Permutation([1, 2, 3, 4, 5, 7, 8, 9, 10, 6])
-
-
-#     # check all combinations of powers i,j in 0:4.
-#     for i in 0:4, j in 0:4
-#         @test is_in_sylow_subgroup(eta1^i * eta2^j, p, k)
-#     end
-
-#     sigma1 = Permutation([2, 3, 1, 4, 5, 7, 6, 8, 9, 10])
-#     @test !is_in_sylow_subgroup(sigma1, p, k)
-
-#     sigma2 = Permutation([2, 3, 4, 1, 5, 6, 7, 8, 9, 10])
-#     @test !is_in_sylow_subgroup(sigma2, p, k)
-# end
 
 @testset "is_cycle_in_sylow_subgroup tests" begin
     p = 5

@@ -44,13 +44,16 @@ end
 
 Return `true` if `cycle` is a cycle in the Sylow subgroup.
 
-The cycles in the subgroup are (up to a cyclic shift) all of the form
+The cycles in the subgroup are either fixed points. Or the cycle has length `p` and is (up to a cyclic shift) of the form
 
     `[start, start + step, start + (2*step % p), ..., start + ((p-1)*step % p)]``
 
 and `start % p == 1`.
 """
 function is_cycle_in_sylow_subgroup(cycle::Array, p::Integer)
+    if length(cycle) == 1
+        return true
+    end
     if length(cycle) != p
         return false
     end
