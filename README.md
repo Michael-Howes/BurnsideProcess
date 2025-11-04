@@ -12,5 +12,5 @@ The folder `Examples` contains Jupyter notebooks demonstrating the use of both M
 
 ### References
 
-- [DH25] Diaconis, P., Howes, M. Random sampling of contingency tables and partitions: Two practical examples of the Burnside process. Stat Comput 35, 181 (2025). [https://doi.org/10.1007/s11222-025-10708-5](https://doi.org/10.1007/s11222-025-10708-5). [ArXiv](https://arxiv.org/abs/2503.02818) 
+- [DH25] Diaconis, P., Howes, M. Random sampling of contingency tables and partitions: Two practical examples of the Burnside process. Stat Comput 35, 181 (2025). [https://doi.org/10.1007/s11222-025-10708-5](https://doi.org/10.1007/s11222-025-10708-5). [https://arxiv.org/abs/2503.02818](https://arxiv.org/abs/2503.02818) 
 - [H25] Howes, M. Limit profiles and cutoff for the Burnside process on Sylow double cosets. Arxiv preprint (2025). [https://arxiv.org/abs/2511.01058](https://arxiv.org/abs/2511.01058)
