@@ -29,4 +29,17 @@ end
 
 group_action(x::Vector{Int}, j::Int) = [x[(j+1):end]; x[1:j]]
 
-sample_stabilizer(zeros(Int, 60))
+function burnside_proccess(n::Int, reps::Int, k=2::Int)
+    x = zeros(Int, n)
+    xs = [x]
+    js = []
+    for _ in 1:(reps-1)
+        j = sample_stabilizer(x)
+        push!(js, j)
+        x = sample_fixed_point(j, n, k)
+        push!(xs, x)
+    end
+    j = sample_stabilizer(x)
+    push!(js, j)
+    return xs, js
+end

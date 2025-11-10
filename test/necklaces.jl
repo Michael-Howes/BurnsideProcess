@@ -39,6 +39,21 @@ end
     @test group_action(x, j) == x
     @test j < 10
     @test 0 ≤ j
+end
 
+@testset "Burnside process" begin
+    n = 10
+    reps = 50
+    xs, js = burnside_proccess(n, reps)
+    for (x, j) in zip(xs, js)
+        @test group_action(x, j) == x
+    end
 
+    n = 12
+    reps = 50
+    k = 4
+    xs, js = burnside_proccess(n, reps, k)
+    for (x, j) in zip(xs, js)
+        @test group_action(x, j) == x
+    end
 end
