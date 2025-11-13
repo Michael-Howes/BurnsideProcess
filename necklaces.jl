@@ -56,13 +56,15 @@ Return
 function burnside_process(n::Int, reps::Int, k=2::Int)
     x = zeros(Int, n)
     xs = [x]
-    js = [1]
+    js = []
     for _ in 1:(reps-1)
         j = sample_stabilizer(x)
         push!(js, j)
         x = sample_fixed_point(j, n, k)
         push!(xs, x)
     end
+    j = sample_stabilizer(x)
+    push!(js, j)
     return xs, js
 end
 
