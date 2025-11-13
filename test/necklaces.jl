@@ -41,7 +41,7 @@ end
     @test 0 ≤ j
 end
 
-@testset "Burnside process" begin
+@testset "Burnside process testset" begin
     n = 10
     reps = 50
     xs, js = burnside_proccess(n, reps)
@@ -56,4 +56,56 @@ end
     for (x, j) in zip(xs, js)
         @test group_action(x, j) == x
     end
+end
+
+@testset "Mobius function testset" begin
+    expected = [1, -1, -1, 0, -1, 1, -1, 0, 0, 1]
+    actual = [μ(k) for k in 1:10]
+    @test actual == expected
+end
+
+@testset "Number of primative testset" begin
+    n = 5
+    k = 3
+    expected = k^5 - k
+    actual = num_primatives(n, k)
+    @test expected == actual
+
+    expected = [2, 2, 6, 12, 30, 54, 126, 240, 504]
+    actual = [num_primatives(n, 2) for n in 1:length(expected)]
+    @test actual == expected
+end
+
+@testset "Transition kernel testset" begin
+    n = 8
+    k = 3
+    P = transition_kernel(n, k)
+    @test P * ones(n) ≈ ones(n)
+
+    p = 19
+    k = 7
+    expected = zeros(p, p)
+    expected[2:p, 1:p] .= 1 / p
+    expected[1, 2:p] .= 1 / p / k^(p - 1)
+    expected[1, 1] = 1 - (p - 1) / p / k^(p - 1)
+    actual = transition_kernel(p, k)
+    @test actual ≈ expected || !isprime(p)
+end
+
+@testset "Stationary distribution testset" begin
+    n = 8
+    k = 3
+    p = π(n, k)
+    @test sum(p) ≈ 1
+
+    P = transition_kernel(n, k)
+    @test p' * P ≈ p'
+
+    n = 50
+    k = 2
+    p = π(n, k)
+    @test sum(p) ≈ 1
+
+    P = transition_kernel(n, k)
+    @test p' * P ≈ p'
 end

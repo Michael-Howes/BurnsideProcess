@@ -1,4 +1,4 @@
-using Random, Primes
+using Random, Primes, LinearAlgebra, SpecialFunctions, LogExpFunctions
 
 """
     sample_fixed_point(j::Int, n::Int, k=2::Int)::Vector{Int}
@@ -53,17 +53,64 @@ Return
     xs: List of vectors [x_1, x_2,..., x_reps].
     js: Group elements [j_1, j_2,...,j_reps].
 """
-function burnside_proccess(n::Int, reps::Int, k=2::Int)
+function burnside_process(n::Int, reps::Int, k=2::Int)
     x = zeros(Int, n)
     xs = [x]
-    js = []
+    js = [1]
     for _ in 1:(reps-1)
         j = sample_stabilizer(x)
         push!(js, j)
         x = sample_fixed_point(j, n, k)
         push!(xs, x)
     end
-    j = sample_stabilizer(x)
-    push!(js, j)
     return xs, js
 end
+
+"""
+    transition_kernel(n, k)
+"""
+function transition_kernel(n, k)
+    C = zeros(Float64, (n, n))
+    for i in 0:(n-1), j in 0:(n-1)
+        gcdin = gcd(i, n)
+        gcdijn = gcd(gcdin, j)
+
+        C[i+1, j+1] = 1 / k^gcdin * sum([num_primatives(d, k) * d / n for d in divisors(gcdijn)])
+    end
+    return C
+end
+
+"""
+    μ(n)
+
+Mobius function
+"""
+function μ(n)
+    (n != 1) || return 1
+    factors = factor(n)
+    Set(values(factors)) == Set([1]) || return 0
+    return (-1)^length(factors)
+end
+
+"""
+    π(n, k)
+
+The stationary distribution on G.
+"""
+function π(n, k)
+    p = zeros(n)
+    for i in 0:(n-1)
+        p[i+1] = gcd(i, n) * log(k)
+    end
+    return softmax(p)
+end
+
+"""
+    num_primatives(n, k)
+
+Return the number of primitive sequences of length `n` with `k` colors.
+"""
+num_primatives(n, k) = sum(μ(n ÷ d) * k^d for d in divisors(n))
+
+
+
