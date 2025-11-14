@@ -11,6 +11,16 @@ include("../necklaces.jl")
     @test group_action(x, 4) == x
 end
 
+@testset "Fixed by group action testset" begin
+    x = [1, 2, 1, 2]
+    @test is_fixed(x, 0)
+    @test !is_fixed(x, 1)
+    @test is_fixed(x, 2)
+    @test !is_fixed(x, 3)
+
+
+end
+
 @testset "Sample fixed points testset" begin
     n = 10
     j = 5
@@ -44,7 +54,7 @@ end
 @testset "Burnside process testset" begin
     n = 10
     reps = 50
-    xs, js = burnside_proccess(n, reps)
+    xs, js = burnside_process(n, reps)
     for (x, j) in zip(xs, js)
         @test group_action(x, j) == x
     end
@@ -52,7 +62,7 @@ end
     n = 12
     reps = 50
     k = 4
-    xs, js = burnside_proccess(n, reps, k)
+    xs, js = burnside_process(n, reps, k)
     for (x, j) in zip(xs, js)
         @test group_action(x, j) == x
     end

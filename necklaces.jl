@@ -25,10 +25,10 @@ Given a vector of length n, sample an element of the cyclic group fixing j.
 function sample_stabilizer(x::Vector{Int})
     n = length(x)
     for d in sort(divisors(n))
-        if group_action(x, d) == x
-            if d == n
-                return 0
-            end
+        if d == n
+            return 0
+        end
+        if is_fixed(x, d)
             ord = n ÷ d
             j = rand(0:(ord-1))
             return j * d
@@ -43,6 +43,13 @@ end
 Cyclically shift x by j.
 """
 group_action(x::Vector{Int}, j::Int) = [x[(j+1):end]; x[1:j]]
+
+""" 
+    is_fixed(x::Vector{Int}, j::Int, n::Int)::Bool
+
+Check if x is fixed by j.
+"""
+is_fixed(x::Vector{Int}, j::Int, n::Int) = all(i -> x[i] == x[(i+j)%n], 1:n)
 
 """
     burnside_proccess(n::Int, reps::Int, k=2::Int)
