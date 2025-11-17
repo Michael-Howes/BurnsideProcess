@@ -28,7 +28,7 @@ function sample_stabilizer(x::Vector{Int})
         if d == n
             return 0
         end
-        if is_fixed(x, d)
+        if is_fixed(x, d, n)
             ord = n ÷ d
             j = rand(0:(ord-1))
             return j * d
@@ -49,7 +49,7 @@ group_action(x::Vector{Int}, j::Int) = [x[(j+1):end]; x[1:j]]
 
 Check if x is fixed by j.
 """
-is_fixed(x::Vector{Int}, j::Int, n::Int) = all(i -> x[i] == x[(i+j)%n], 1:n)
+is_fixed(x::Vector{Int}, j::Int, n::Int) = all(i -> x[i%n+1] == x[(i+j)%n+1], 1:n)
 
 """
     burnside_proccess(n::Int, reps::Int, k=2::Int)

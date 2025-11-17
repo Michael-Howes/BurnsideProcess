@@ -13,10 +13,10 @@ end
 
 @testset "Fixed by group action testset" begin
     x = [1, 2, 1, 2]
-    @test is_fixed(x, 0)
-    @test !is_fixed(x, 1)
-    @test is_fixed(x, 2)
-    @test !is_fixed(x, 3)
+    @test is_fixed(x, 0, 4)
+    @test !is_fixed(x, 1, 4)
+    @test is_fixed(x, 2, 4)
+    @test !is_fixed(x, 3, 4)
 
 
 end
