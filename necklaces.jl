@@ -49,7 +49,7 @@ group_action(x::Vector{Int}, j::Int) = [x[(j+1):end]; x[1:j]]
 
 Check if x is fixed by j.
 """
-is_fixed(x::Vector{Int}, j::Int, n::Int) = all(i -> x[i%n+1] == x[(i+j)%n+1], 1:n)
+is_fixed(x::Vector{Int}, j::Int, n::Int) = all(i -> x[i] == x[i+j], 1:(n-j)) && all(i -> x[i] == x[i+j-n], (n-j+1):n)
 
 """
     burnside_proccess(n::Int, reps::Int, k=2::Int)
@@ -120,6 +120,4 @@ end
 Return the number of primitive sequences of length `n` with `k` colors.
 """
 num_primatives(n, k) = sum(μ(n ÷ d) * k^d for d in divisors(n))
-
-
 
