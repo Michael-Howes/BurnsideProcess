@@ -121,3 +121,63 @@ Return the number of primitive sequences of length `n` with `k` colors.
 """
 num_primatives(n, k) = sum(μ(n ÷ d) * k^d for d in divisors(n))
 
+
+"""
+    log_num_primatives(n, k)
+
+Return the logarithm of the number of primitive sequences of length `n` with `k` colors.
+"""
+function log_num_primatives(n, k)
+    if n == 1
+        return log(k)
+    end
+    negative_term = logsumexp(d * log(k) for d in divisors(n) if μ(n ÷ d) == -1)
+    positive_term = logsumexp(d * log(k) for d in divisors(n) if μ(n ÷ d) == 1)
+    logdiff = logsubexp(positive_term, negative_term)
+    return logdiff
+end
+
+"""
+    log_transition_kernel(n, k)
+"""
+function log_transition_kernel(n, k)
+    log_C = zeros(Float64, (n, n))
+    for i in 0:(n-1), j in 0:(n-1)
+        gcdin = gcd(i, n)
+        gcdijn = gcd(gcdin, j)
+
+        log_C[i+1, j+1] = -gcdin * log(k) + logsumexp(log_num_primatives(d, k) + log(d) - log(n) for d in divisors(gcdijn))
+    end
+    return log_C
+end
+
+"""
+    log_transition_kernel(n, k)
+"""
+function log_lumped_transition_kernel(n, k)
+    divs = collect(sort(divisors(n)))
+    D = length(divs)
+
+    log_C = zeros(Float64, (D, D))
+    for j in 1:D
+        b = divs[j]
+        if b == n
+            log_totient = 0
+        else
+            factors = factor(n ÷ b)
+            log_totient = sum(log1p(-1 / prime) + exponent * log(prime) for (prime, exponent) in factors)
+        end
+        for i in 1:D
+            a = divs[i]
+            minab = min(a, b)
+            log_C[i, j] = log_totient - a * log(k) + logsumexp(log_num_primatives(d, k) + log(d) - log(n) for d in divisors(minab))
+        end
+    end
+    return log_C
+end
+
+function lumped_stationary_distribution(n, k)
+    divs = sort(divisors(n))
+    p = [log(totient(n ÷ d)) + d * log(k) for d in divs]
+    return softmax(p)
+end
