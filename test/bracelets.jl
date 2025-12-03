@@ -80,25 +80,28 @@ end
     for (x, j, r) in zip(xs, js, rs)
         @test group_action(x, j, r) == x
     end
+
+    n = 12
+    reps = 30
+    k = 2
+    j0 = 6
+    r0 = 0
+    xs, js, rs = burnside_process(n, reps, k, j0, r0)
+    for (x, j, r) in zip(xs, js, rs)
+        @test group_action(x, j, r) == x
+    end
+
+    n = 12
+    reps = 30
+    k = 2
+    j0 = 6
+    r0 = 1
+    xs, js, rs = burnside_process(n, reps, k, j0, r0)
+    for (x, j, r) in zip(xs, js, rs)
+        @test group_action(x, j, r) == x
+    end
 end
 
-@testset "Mobius function testset" begin
-    expected = [1, -1, -1, 0, -1, 1, -1, 0, 0, 1]
-    actual = [μ(k) for k in 1:10]
-    @test actual == expected
-end
-
-@testset "Number of primative testset" begin
-    n = 5
-    k = 3
-    expected = k^5 - k
-    actual = num_primatives(n, k)
-    @test expected == actual
-
-    expected = [2, 2, 6, 12, 30, 54, 126, 240, 504]
-    actual = [num_primatives(n, 2) for n in 1:length(expected)]
-    @test actual == expected
-end
 
 # @testset "Transition kernel testset" begin
 #     n = 8

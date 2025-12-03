@@ -19,10 +19,10 @@ function sample_fixed_point(j::Int, r::Int, n::Int, k=2::Int)::Vector{Int}
         return x
     else
         x = zeros(Int, n)
-        for i in 1:n 
+        for i in 1:n
             xi = rand(0:(k-1))
             x[i] = xi
-            x[mod(j-i, n) + 1] = xi 
+            x[mod(j - i, n)+1] = xi
         end
         return x
     end
@@ -38,7 +38,7 @@ function sample_stabilizer(x::Vector{Int})
     stab = []
     for j in 0:(n-1), r in 0:1
         if is_fixed(x, j, r)
-            push!(stab, (j,r))
+            push!(stab, (j, r))
         end
     end
     return rand(stab)
@@ -49,7 +49,7 @@ end
 
 Cyclically shift x by j.
 """
-group_action(x::Vector{Int}, j::Int, r::Int) = r==0 ? [x[(j+1):end]; x[1:j]] : [x[j:-1:1]; x[end:-1:(j+1)]]
+group_action(x::Vector{Int}, j::Int, r::Int) = r == 0 ? [x[(j+1):end]; x[1:j]] : [x[j:-1:1]; x[end:-1:(j+1)]]
 
 """ 
     is_fixed(x::Vector{Int}, j::Int, n::Int)::Bool
@@ -67,49 +67,49 @@ Return
     xs: List of vectors [x_1, x_2,..., x_reps].
     js: Group elements [j_1, j_2,...,j_reps].
 """
-function burnside_process(n::Int, reps::Int, k=2::Int)
-    x = zeros(Int, n)
-    xs = [x]
-    js = []
-    rs = []
+function burnside_process(n::Int, reps::Int, k=2::Int, j0=1::Int, r0=0::Int)
+    xs = []
+    js = [j0]
+    rs = [r0]
+    j, r = j0, r0
     for _ in 1:(reps-1)
+        x = sample_fixed_point(j, r, n, k)
+        push!(xs, x)
         j, r = sample_stabilizer(x)
         push!(js, j)
         push!(rs, r)
-        x = sample_fixed_point(j, r, n, k)
-        push!(xs, x)
     end
-    j, r = sample_stabilizer(x)
-    push!(js, j)
-    push!(rs, r)
+
+    x = sample_fixed_point(j, r, n, k)
+    push!(xs, x)
     return xs, js, rs
 end
 
-"""
-    transition_kernel(n, k)
-"""
-function transition_kernel(n, k)
-    C = zeros(Float64, (n, n))
-    for i in 0:(n-1), j in 0:(n-1)
-        gcdin = gcd(i, n)
-        gcdijn = gcd(gcdin, j)
+# """
+#     transition_kernel(n, k)
+# """
+# function transition_kernel(n, k)
+#     C = zeros(Float64, (n, n))
+#     for i in 0:(n-1), j in 0:(n-1)
+#         gcdin = gcd(i, n)
+#         gcdijn = gcd(gcdin, j)
 
-        C[i+1, j+1] = 1 / k^gcdin * sum([num_primatives(d, k) * d / n for d in divisors(gcdijn)])
-    end
-    return C
-end
+#         C[i+1, j+1] = 1 / k^gcdin * sum([num_primatives(d, k) * d / n for d in divisors(gcdijn)])
+#     end
+#     return C
+# end
 
-"""
-    μ(n)
+# """
+#     μ(n)
 
-Mobius function
-"""
-function μ(n)
-    (n != 1) || return 1
-    factors = factor(n)
-    Set(values(factors)) == Set([1]) || return 0
-    return (-1)^length(factors)
-end
+# Mobius function
+# """
+# function μ(n)
+#     (n != 1) || return 1
+#     factors = factor(n)
+#     Set(values(factors)) == Set([1]) || return 0
+#     return (-1)^length(factors)
+# end
 
 """
     π(n, k)
@@ -117,7 +117,7 @@ end
 The stationary distribution on G.
 """
 function π(n, k)
-    p = zeros(2*n)
+    p = zeros(2 * n)
     # Define p on the rotations
     for i in 0:(n-1)
         p[i+1] = gcd(i, n) * log(k)
@@ -126,9 +126,9 @@ function π(n, k)
     if n % 2 == 0
         ndiv2 = n ÷ 2
         p[(n+1):2:end] .= ndiv2 * log(k)
-        p[(n+2):2:end] .= (ndiv2 + 1)*log(k)
+        p[(n+2):2:end] .= (ndiv2 + 1) * log(k)
     else
-        p[(n+1):end] .= (n+1)/2 * log(k)
+        p[(n+1):end] .= (n + 1) / 2 * log(k)
     end
     return softmax(p)
 end
