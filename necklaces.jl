@@ -181,3 +181,26 @@ function lumped_stationary_distribution(n, k)
     p = [log(totient(n ÷ d)) + d * log(k) for d in divs]
     return softmax(p)
 end
+
+function approx_log_lumped_transition_kernel(n, k)
+    divs = collect(sort(divisors(n)))
+    D = length(divs)
+
+    log_C = zeros(Float64, (D, D))
+    for j in 1:D
+        b = divs[j]
+        if b == n
+            log_totient = 0
+        else
+            factors = factor(n ÷ b)
+            log_totient = sum(log1p(-1 / prime) + exponent * log(prime) for (prime, exponent) in factors)
+        end
+        for i in 1:j
+            log_C[i, j] = log_totient 
+        end
+        for i in (j+1):D
+            log_C[i,j]= -Inf64
+        end
+    end
+    return log_C
+end
